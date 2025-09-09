@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"> -->
+
+  <style>
+    .carousel-wrapper {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .carousel-track {
+      display: flex;
+      flex-wrap: nowrap;
+      transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
+      padding-bottom: 3rem; 
+    }
+
+    .carousel-item {
+      flex: 0 0 70%; 
+      max-width: 70%;
+      margin: 0 20px;
+      text-align: center;
+      cursor: pointer;
+      
+      /* 非激活状态 */
+      transform: scale(0.85);
+      opacity: 0.4;
+      transition: transform 0.5s ease, opacity 0.5s ease;
+      position: relative; /* 为 z-index 生效 */
+      z-index: 1;
+    }
+
+    /* --- [优化] 激活状态样式 --- */
+    .carousel-item.is-active {
+      /* 放大到 105%，比原始尺寸更大，更突出 */
+      transform: scale(1.1); 
+      opacity: 1;
+      /* 确保激活项在最上层 */
+      z-index: 2; 
+      /* 添加更明显的阴影 */
+      box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    }
+
+    .image-container {
+      overflow: hidden;
+      border-radius: 10px;
+    }
+
+    .image-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    
+    .item-title {
+        font-size: 1rem;
+        margin-top: 0.8rem;
+        /* -------------------------------- */
+        color: #333;
+    }
+
+    .carousel-button {
+      position: absolute;
+      top: 50%;
+      /* 调整按钮位置，使其不与放大的图片重叠 */
+      transform: translateY(-70%); 
+      z-index: 10;
+      background-color: rgba(255, 255, 255, 0.7);
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #333;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .carousel-button:hover {
+      background-color: white;
+      color: black;
+    }
+    .carousel-button.prev {
+      left: 5px;
+    }
+    .carousel-button.next {
+      right: 5px;
+    }
+    .carousel-button svg {
+      width: 25px;
+      height: 25px;
+    }
+  </style>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="Directly Aligning the Full Diffusion Trajectory with Fine-Grained Human Preference via Online Reward Adjustment">
+  <meta name="keywords" content="Reward mdoel, diffusion,RLHF">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Directly Aligning the Full Diffusion Trajectory with Fine-Grained Human Preference via Online Reward Adjustment</title>
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PYVRSFMDRL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+
+    gtag('config', 'G-PYVRSFMDRL');
+  </script>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/favicon.svg">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+</head>
+<body>
+  <style>
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+    .small-image {
+      width: 50%;
+      height: auto;
+    }
+  </style>
+
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+
+          <h1 class="title is-1 publication-title">Directly Aligning the Full Diffusion Trajectory with Fine-Grained Human Preference</h1>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              Xiangwei Shen<sup>1,2*</sup>,</span>
+            <span class="author-block">
+              <a href="https://scholar.google.com/citations?user=Lnr1FQEAAAAJ&hl=zh-CN"><b>Zhimin Li</b></a><sup>1*</sup><sup></sup>,</span>
+            <span class="author-block">
+              <a href="https://scholar.google.com.hk/citations?user=Fz3X5FwAAAAJ"><b>Zhantao Yang</b></a><sup>1</sup>, </span>
+            <span class="author-block">
+              <a href="https://shiyi-zh0408.github.io/"><b>Shiyi Zhang</b></a><sup>3</sup>,</span>
+            <span class="author-block">
+              Yingfang Zhang<sup>1</sup>,</span>
+            <span class="author-block">
+              Donghao Li<sup>1</sup>,</span>
+            </br>
+            <span class="author-block">
+               <a href="https://scholar.google.com/citations?user=VXQV5xwAAAAJ&hl=en"><b>Chunyu Wang</b></a><sup>1</sup>,</span>
+            <span class="author-block">
+            <a href="https://openreview.net/profile?id=%7EQinglin_Lu2"><b>Qinglin Lu</b></a><sup>1</sup>,</span>
+            <span class="author-block">
+              <a href="https://andytang15.github.io"><b>Yansong Tang</b></a><sup>3,✝</sup></span>
+          </div>
+          
+          <div class="is-size-5 publication-authors">
+            <span class="author-block" style="margin-right: 15px;"><sup>1</sup>Hunyuan,    Tencent </span>
+            <br>
+            <span class="author-block" style="margin-right: 15px;"><sup>2</sup>School of Science and Engineering, The Chinese University of Hong Kong, Shenzhen</span>
+            <span class="author-block "style="margin-right: 15px;"><sup>3</sup>Shenzhen International Graduate School, Tsinghua University</span>
+            <br>
+            <span class="author-block"><sup>*</sup>Equal contribution</span>
+            <span class="author-block"><sup>✝</sup>Corresponding author</span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <span class="link-block">
+                <a href="https://arxiv.org/pdf/2509.06942"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+              
+              <!-- <span class="link-block">
+                <a href="https://arxiv.org/abs/2504.12395" class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                    <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>Arxiv</span>
+                </a>
+              </span> -->
+              <span class="link-block">
+                <a href=""
+                  class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                    <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="https://huggingface.co/tencent/SRPO/" target="_blank"
+                class="external-link button is-normal is-rounded is-dark">
+                <span class="icon">
+                  <img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="Hugging Face" width="24" height="24">
+                </span>
+                <span>Model</span>
+              </a>
+            </span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- <section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+      <video id="teaser" autoplay muted loop playsinline height="100%">
+        <source src="./static/videos/teaser.mp4"
+                type="video/mp4">
+      </video>
+      <h2 class="subtitle has-text-centered">
+        <span class="dnerf">Nerfies</span> turns selfie videos from your phone into
+        free-viewpoint
+        portraits.
+      </h2>
+    </div>
+  </div>
+</section> -->
+
+<section class="section">
+  <div class="container is-max-desktop">
+
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full">
+        <h2 class="title is-3">Abstract</h2>
+
+        <div style="display: flex; justify-content: center; margin-bottom: 30px;">
+          <img src="./static/images/head.png" alt="Teaser Image" width="100%" height="100%">
+        </div>
+      
+        <div class="content has-text-justified">
+          <p>
+            Recent studies have demonstrated the effectiveness of directly aligning diffusion models with human preferences using differentiable reward. However, they exhibit two primary challenges: (1) they rely on multistep denoising with gradient computation for reward scoring, which is computationally expensive, thus restricting optimization to only a few diffusion steps; (2) they often need continuous offline adaptation of reward models in order to achieve desired aesthetic quality, such as photorealism or precise lighting effects. To address the limitation of multistep denoising, we propose Direct-Align, a method that predefines a noise prior to effectively recover original images from any time steps via interpolation, leveraging the equation that diffusion states are interpolations between noise and target images, which effectively avoids over-optimization in late timesteps. Furthermore, we introduce Semantic Relative Preference Optimization (SRPO), in which rewards are formulated as text-conditioned signals. This approach enables online adjustment of rewards in response to positive and negative prompt augmentation, thereby reducing the reliance on offline reward fine-tuning. By fine-tuning the FLUX.1.dev model with optimized denoising and online reward adjustment, we improve its human-evaluated realism and aesthetic quality by over 3x.
+          </p>
+        </div>
+      </div>
+    </div>
+</section>
+<section class="section">
+  <div class="container is-max-desktop">
+
+    <!-- 两行居中标题 -->
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <h2 class="title is-2" style="margin-bottom: 0;">Key contribution</h2>
+    </div>
+
+    <div class="box" style="background-color: transparent; box-shadow: none; border: none; padding: 0; display: flex; flex-direction: column;">
+      <div class="content has-text-justified">
+        <b>Direct Align.</b>
+        We introduce a new sampling strategy for diffusion fine-tuning that can effectively restore highly noisy images, leading to an optimization process that is more stable and less computationally demanding, especially during the initial timesteps.
+      </p>
+        <p>
+          <b>Faster Training.</b>
+          By rolling out only a single image and optimizing directly with analytical gradients—a key distinction from GRPO—our method achieves significant performance improvements for FLUX.1.dev in under 10 minutes of training. To further accelerate the process, our method supports replacing online rollouts entirely with a small dataset of real images; we find that fewer than 1500 images are sufficient to effectively train FLUX.1.dev.
+        </p>
+        <p>
+          <b>Free of Reward Hacking.</b>
+          We have improved the training strategy for method that direct backpropagation on reward signal (such as ReFL and DRaFT). Moreover, we directly regularize the model using negative rewards, without the need for KL divergence or a separate reward system. In our experiments, this approach achieves comparable performance with multiple different rewards, improving the perceptual quality of FLUX.1.dev without suffering from reward hacking issues, such as overfitting to color or oversaturation preferences.
+        </p>
+        <p>
+          <b>Potential for Controllable Fine-tuning.</b>
+          Our work is the first in online RL to incorporate dynamically controllable prompt augmentation directly into the reward model, enabling online adjustment of reward preference towards styles within the scope of the reward model.
+        </p>
+        <!-- <div style="display: flex; flex-direction: row; justify-content: center; align-items: center; margin: 20px 0;">
+          <img src="./static/images/CC.png" style="height: 400px; margin-right: 40px;" />
+          
+
+          <img src="./static/images/noise5m.png" style="height: 400px;" />
+        </div> -->
+      </div>
+    </div>
+  </div>
+</section>
+<section class="section">
+  <div class="container">
+    <h2 class="title is-3 has-text-centered mb-6">Enhanced Realism (without AI look)</h2>
+
+    <div id="my-carousel" class="carousel-wrapper">
+      
+      <div class="carousel-track">
+        <div class="carousel-item">
+          <div class="image-container">
+            <img src="static/images/A close-up of a white flower with orange stamens on a branch.jpg" alt="正方形图 1">
+          </div>
+          <h3 class="title is-5 item-title">A close-up of a white flower with orange stamens on a branch.</h3>
+        </div>
+        <div class="carousel-item">
+          <div class="image-container">
+            <img src="static/images/31_A small blue-gray butterfly with black stripes rests on a white and yellow flower against a blurred green background..png" alt="正方形图 4">
+          </div>
+          <h3 class="title is-5 item-title">A small blue-gray butterfly with black stripes rests on a white and yellow flower against a blurred green background.</h3>
+        </div>
+        <div class="carousel-item">
+          <div class="image-container">
+            <img src="static/images/31_A grey tabby cat with yellow eyes rests on a weathered wooden log under bright sunlight..png" alt="正方形图 5">
+          </div>
+          <h3 class="title is-5 item-title">A grey tabby cat with yellow eyes rests on a weathered wooden log under bright sunlight</h3>
+        </div>
+        <div class="carousel-item">
+          <div class="image-container">
+            <img src="static/images/34_An orange tabby cat with white markings sits on a rock, looking down..png" alt="正方形图 5">
+          </div>
+          <h3 class="title is-5 item-title">An orange tabby cat with white markings sits on a rock, looking down</h3>
+        </div>
+        <div class="carousel-item">
+          <div class="image-container">
+            <img src="static/images/A person with dark skin and short black hair sits on a wooden chair, wearing a yellow floral dress against a grey wall with strong shadows.jpg" alt="正方形图 5">
+          </div>
+          <h3 class="title is-5 item-title">A person with dark skin and short black hair sits on a wooden chair, wearing a yellow floral dress against a grey wall with strong shadows.</h3>
+        </div>
+        <div class="carousel-item">
+          <div class="image-container">
+            <img src="static/images/A still frame from a black and white movie, featuring a man in classic attire, dramatic high contrast lighting, deep shadows, retro film grain, and a nostalgic cinematic mood..jpg" alt="正方形图 5">
+          </div>
+          <h3 class="title is-5 item-title">A still frame from a black and white movie, featuring a man in classic attire, dramatic high contrast lighting, deep shadows, retro film grain, and a nostalgic cinematic mood.</h3>
+        </div>
+        <div class="carousel-item">
+          <div class="image-container">
+            <img src="static/images/A traditional Chinese building with red pillars and an ornate roof, with a pagoda visible in the background.2.jpg" alt="正方形图 5">
+          </div>
+          <h3 class="title is-5 item-title">A traditional Chinese building with red pillars and an ornate roof, with a pagoda visible in the background.</h3>
+        </div>
+        <div class="carousel-item">
+          <div class="image-container">
+            <img src="static/images/A bridge spans a wide river with a cityscape on the far bank, viewed from a grassy embankment..jpg" alt="正方形图 5">
+          </div>
+          <h3 class="title is-5 item-title">A bridge spans a wide river with a cityscape on the far bank, viewed from a grassy embankment.</h3>
+        </div>
+        <div class="carousel-item">
+          <div class="image-container">
+            <img src="static/images/Side of a street, where there is a fire hydrant2..jpg" alt="正方形图 2">
+          </div>
+          <h3 class="title is-5 item-title">Side of a street, where there is a fire hydrant and a mirror showing the street.</h3>
+        </div>
+        <div class="carousel-item">
+          <div class="image-container">
+            <img src="static/images/Two young ladies seated with several other people at a dinner table.jpg" alt="正方形图 2">
+          </div>
+          <h3 class="title is-5 item-title">Two young ladies seated with several other people at a dinner table.</h3>
+        </div>
+        <div class="carousel-item">
+          <div class="image-container">
+            <img src="static/images/A still frame from a black and white movie, featuring a man in classic attire, dramatic high contrast lighting, deep shadows, retro film grain, and a nostalgic cinematic mood2.jpg" alt="正方形图 5">
+          </div>
+          <h3 class="title is-5 item-title">A still frame from a black and white movie, featuring a man in classic attire, dramatic high contrast lighting, deep shadows, retro film grain, and a nostalgic cinematic mood.</h3>
+        </div>
+        <div class="carousel-item">
+          <div class="image-container">
+            <img src="static/images/32_A single yellow flower with green stems stands out against a dark, blurred green background..png" alt="正方形图 8">
+          </div>
+          <h3 class="title is-5 item-title">A single yellow flower with green stems stands out against a dark, blurred green background.</h3>
+        </div>
+        
+        <div class="carousel-item">
+          <div class="image-container">
+            <img src="static/images/32_A close-up of a white flower with orange stamens on a branch..png" alt="正方形图 2">
+          </div>
+          <h3 class="title is-5 item-title">A close-up of a white flower with orange stamens on a branch.</h3>
+        </div>
+
+      </div>
+      <button class="carousel-button prev">
+        <svg viewBox="0 0 50 80"><polyline fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" points="45.63,75.8 0.375,38.087 45.63,0.375 "></polyline></svg>
+      </button>
+      <button class="carousel-button next">
+        <svg viewBox="0 0 50 80"><polyline fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" points="0.375,0.375 45.63,38.087 0.375,75.8 "></polyline></svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2 class="title is-3 has-text-centered mb-6">Enhanced Aesthetic (without AI look)</h2>
+
+    <div id="my-carousel2" class="carousel-wrapper">
+      
+      <div class="carousel-track">
+        <!-- 遍历所有图片项目，注意 img 外面新增的 div.image-container -->
+        <div class="carousel-item">
+          <div class="image-container">
+            <img src="static/images/The Death of Ophelia by John Everett Millais, Pre-Raphaelite painting, Ophelia floating in a river surrounded by flowers, detailed natural elements.jpg" alt="正方形图 2">
+          </div>
+          <h3 class="title is-5 item-title">The Death of Ophelia by John Everett Millais, Pre-Raphaelite painting, Ophelia floating in a river surrounded by flowers, detailed natural elements.</h3>
+        </div>
+        <div class="carousel-item">
+          <div class="image-container">
+            <img src="static/images/Starry Night.jpg" alt="正方形图 2">
+          </div>
+          <h3 class="title is-5 item-title">Starry Night.</h3>
+        </div>
+        <div class="carousel-item">
+          <div class="image-container">
+            <img src="static/images/Girl with a pearl earring.jpg" alt="正方形图 4">
+          </div>
+          <h3 class="title is-5 item-title">Girl with a pearl earring.jpg </h3>
+        </div>
+        <div class="carousel-item">
+          <div class="image-container">
+            <img src="static/images/A digital pen lineart sketch of a Japanese schoolgirl.jpg" alt="正方形图 5">
+          </div>
+          <h3 class="title is-5 item-title">A digital pen lineart sketch of a Japanese schoolgirl.</h3>
+        </div>
+      
+        <div class="carousel-item">
+          <div class="image-container">
+            <img src="static/images/A first-person screenshot from Half-Life, FPS..jpg" alt="正方形图 8">
+          </div>
+          <h3 class="title is-5 item-title">A first-person screenshot from Half-Life.</h3>
+        </div>
+        <div class="carousel-item">
+          <div class="image-container">
+            <img src="static/images/An investigator fights a tentacled monster in a finely detailed horror film still..jpg" alt="正方形图 5">
+          </div>
+          <h3 class="title is-5 item-title">An investigator fights a tentacled monster in a finely detailed horror film still.</h3>
+        </div>
+        <div class="carousel-item">
+          <div class="image-container">
+            <img src="static/images/Hooded figure standing over a ruined city with red haze and a grin.jpg" alt="正方形图 5">
+          </div>
+          <h3 class="title is-5 item-title">Hooded figure standing over a ruined city with red haze and a grin.</h3>
+        </div>
+        <div class="carousel-item">
+          <div class="image-container">
+            <img src="static/images/Renaissance angel depicted in Gerhard Richter's oil painting..jpg" alt="正方形图 5">
+          </div>
+          <h3 class="title is-5 item-title">Renaissance angel depicted in Gerhard Richter's oil painting.</h3>
+        </div>
+      </div>
+      <button class="carousel-button prev">
+        <svg viewBox="0 0 50 80"><polyline fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" points="45.63,75.8 0.375,38.087 45.63,0.375 "></polyline></svg>
+      </button>
+      <button class="carousel-button next">
+        <svg viewBox="0 0 50 80"><polyline fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" points="0.375,0.375 45.63,38.087 0.375,75.8 "></polyline></svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+  
+    const initCarousel = (carouselWrapper) => {
+      const track = carouselWrapper.querySelector('.carousel-track');
+      const items = Array.from(track.children);
+      const nextButton = carouselWrapper.querySelector('.carousel-button.next');
+      const prevButton = carouselWrapper.querySelector('.carousel-button.prev');
+  
+      if (!track || items.length === 0 || !nextButton || !prevButton) {
+        console.error('Carousel initialization failed: missing required elements inside', carouselWrapper);
+        return;
+      }
+      
+      let currentIndex = 0;
+      let isTransitioning = false;
+      const transitionDuration = 500;
+      let totalItemWidth = 0;
+  
+      const updateDimensions = () => {
+        if (items.length === 0) return;
+        const itemWidth = items[0].offsetWidth;
+        const itemMargin = parseInt(window.getComputedStyle(items[0]).marginRight) * 2;
+        totalItemWidth = itemWidth + itemMargin;
+      };
+  
+      const moveToSlide = (targetIndex) => {
+        if (totalItemWidth === 0) return;
+  
+        const wrapperWidth = track.parentElement.getBoundingClientRect().width;
+        const initialOffset = (wrapperWidth / 2) - (totalItemWidth / 2);
+        const amountToMove = initialOffset - (targetIndex * totalItemWidth);
+  
+        track.style.transform = `translateX(${amountToMove}px)`;
+  
+        items.forEach((item, index) => {
+          item.classList.toggle('is-active', index === targetIndex);
+        });
+  
+        currentIndex = targetIndex;
+      };
+  
+      nextButton.addEventListener('click', () => {
+        if (isTransitioning) return;
+        isTransitioning = true;
+        let nextIndex = (currentIndex + 1) % items.length;
+        moveToSlide(nextIndex);
+        setTimeout(() => { isTransitioning = false; }, transitionDuration);
+      });
+  
+      prevButton.addEventListener('click', () => {
+        if (isTransitioning) return;
+        isTransitioning = true;
+        let prevIndex = (currentIndex - 1 + items.length) % items.length;
+        moveToSlide(prevIndex);
+        setTimeout(() => { isTransitioning = false; }, transitionDuration);
+      });
+  
+      items.forEach((item, index) => {
+        item.addEventListener('click', () => {
+          if (isTransitioning || index === currentIndex) return;
+          isTransitioning = true;
+          moveToSlide(index);
+          setTimeout(() => { isTransitioning = false; }, transitionDuration);
+        });
+      });
+  
+      const handleResize = () => {
+        updateDimensions();
+        moveToSlide(currentIndex);
+      };
+      
+      window.addEventListener('resize', handleResize);
+  
+      const initialize = () => {
+        updateDimensions();
+        moveToSlide(0);
+      };
+  
+      if (document.readyState === 'complete') {
+        initialize();
+      } else {
+        window.addEventListener('load', initialize);
+      }
+    };
+  
+    const allCarousels = document.querySelectorAll('.carousel-wrapper');
+    allCarousels.forEach(carousel => {
+      initCarousel(carousel);
+    });
+  
+  });
+  </script>
+<!-- <section class="section hero is-small">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <h2 class="title is-4 has-text-centered"><b style="color:#008AD7; font-weight:normal">&#x25B6 </b>Qualitative results</h2>
+      <div id="results-carousel-more" class="carousel results-carousel">
+
+        <div class="item item-puppet">
+          <div class="carousel-content">
+            <img src="static/images/32_A single yellow flower with green stems stands out against a dark, blurred green background..png"
+                   alt="Puppet."/>
+          </div>
+        </div>
+
+        <div class="item item-puppet">
+          <div class="carousel-content">
+            <img src="static/images/32_A close-up of a white flower with orange stamens on a branch..png"
+                   alt="Puppet."/>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    
+  </div>
+</section> -->
+
+
+<section class="section">
+  <div class="container is-max-desktop">
+
+    <h2 class="title is-2" style="text-align:center;">Framework</h2>
+
+    <div style="display: flex; justify-content: center; margin-bottom: 30px;">
+      <img src="./static/images/frame.png" alt="Teaser Image" width="100%" height="100%">
+    </div>
+  
+    <div class="content has-text-justified">
+      <p>To enable precise reward assignment during the early stages of the diffusion process, we reconstruct a clean image from an intermediate noisy image using a ground-truth noise prior and a single-step denoising operation. Specifically, we first generate a clean image and inject Gaussian noise, thereby establishing a closed-form expression for recovering images at any diffusion timestep. The Direct-Align pipeline consists of four key stages: (0) generating images for training; (1) injecting noise into the images; (2) performing a one-step denoising or inversion operation; and (3) recovering the images. The SRPO modifies the reward model by introducing two branches—penalty and reward—prior to scoring, which respectively evaluate the denoising and inversion processes.
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<section class="section hero is-small">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <h2 class="title is-4 has-text-centered">Cross-Reward Performance (without Reward Hacking)</h2>
+      <div style="display: flex; justify-content: center; margin-bottom: 30px;">
+        <img src="./static/images/5x9-2.png" alt="Teaser Image" style="max-width:100%; height:auto;">
+      </div>
+    </div>
+  </div>
+</section>
+<section class="section hero is-small">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <h2 class="title is-4 has-text-centered">Lighting and Sytle Control </h2>
+      <div style="display: flex; justify-content: center; margin-bottom: 30px;">
+        <img src="./static/images/ccc.png" alt="Teaser Image" style="max-width:100%; height:auto;">
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section hero is-small">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <h2 class="title is-4 has-text-centered">Ablations </h2>
+      <div style="display: flex; justify-content: center; margin-bottom: 30px;">
+        <img src="./static/images/ABCD.png" alt="Teaser Image" style="max-width:100%; height:auto;">
+      </div>
+    </div>
+  </div>
+</section>
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX</h2>
+    <pre><code>@misc{shen2025directlyaligningdiffusiontrajectory,
+      title={Directly Aligning the Full Diffusion Trajectory with Fine-Grained Human Preference}, 
+      author={Xiangwei Shen and Zhimin Li and Zhantao Yang and Shiyi Zhang and Yingfang Zhang and Donghao Li and Chunyu Wang and Qinglin Lu and Yansong Tang},
+      year={2025},
+      eprint={2509.06942},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI},
+      url={https://arxiv.org/abs/2509.06942}, 
+}</code></pre>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="content has-text-centered">
+      <p>
+        The website template is borrowed from <a
+        href="https://github.com/nerfies/nerfies.github.io">Nerfies</a>.
+      </p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
